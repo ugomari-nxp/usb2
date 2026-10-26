@@ -126,7 +126,7 @@ The compound device shall enumerate in the following conceptual order:
 1. Firmware running on MCU does:
      1. Initializes USB PHY and clocks.
      2. Initializes HUB_RAM.
-     3. Sets HUB_EN and HUB_CONNECT control bits. 
+     3. Sets HUB_EN and HUB_DCON control bits. 
 2. EVH presents device attach to the USB host.
 3. Host enumerates the EVH as a virtual hub.
 5. EVH reports downstream Port 0 connection.
@@ -153,7 +153,7 @@ sequenceDiagram
     Note over EVH,MCU_FW: Hub Enumeration
 
     MCU_FW->>SOC: Initialize USB clock & PHY
-    MCU_FW->>EVH: Initialize HUB_RAM and set HUB_EN & HUB_CONNECT control bits.
+    MCU_FW->>EVH: Initialize HUB_RAM and set HUB_EN & HUB_DCON control bits.
     EVH-->>Host: Enable DP+ pull-up
     Host->>EVH: Detect USB attach
     Host->>EVH: Chirp sequence
@@ -211,7 +211,7 @@ sequenceDiagram
     participant MCU_FW as MCU ROM
       
     MCU_FW->>HUB_RAM: Initialize HUB descriptors & setup-match region
-    MCU_FW->>EVH: Set HUB_EN and HUB_CONNECT
+    MCU_FW->>EVH: Set HUB_EN and HUB_DCON
 
     Note over Host,EVH: Hub Enumeration
     Host->>EVH: SOF tokens to initialize
@@ -555,7 +555,7 @@ Firmware SHALL use the following sequence:
 9. Validate that all pointers, selected buffers, lengths, and entries are within the 512-byte RAM.
 10. Read back and compare the HUB RAM image.
 11. Set HUB_EN = 1.
-12. Set HUB_CONNECT = 1 after VBUS and the remaining integration prerequisites are valid.
+12. Set HUB_DCON = 1 after VBUS and the remaining integration prerequisites are valid.
 ```
 
 If validation or readback fails, firmware MUST leave `HUB_EN = 0` and `HUB_DCON = 0` and report a boot error.
@@ -571,7 +571,7 @@ To update descriptors or request patterns after the hub has been enabled, firmwa
 4. Confirm that the hub is inactive.
 5. Program and validate the replacement HUB RAM image.
 6. Set HUB_EN.
-7. Set HUB_CONNECT.
+7. Set HUB_DCON.
 8. Reconnect each ready downstream device by setting its DCON bit.
 ```
 
@@ -725,7 +725,7 @@ When a non-zero SetConfiguration value is accepted, firmware MUST:
 1. Hub and device interrupt status MUST be cleared using the access semantics defined by their register specifications.
 2. All polling loops MUST have bounded timeouts.
 3. A per-device error SHOULD be recovered by disconnecting and resetting only that device.
-4. A hub or PHY failure MAY require `HUB_CONNECT = 0` and complete re-enumeration.
+4. A hub or PHY failure MAY require `HUB_DCON = 0` and complete re-enumeration.
 5. Firmware MUST leave the hub disconnected if HUB RAM validation fails.
 
 ## 7. Memory Safety and Security
@@ -751,7 +751,7 @@ Verification SHALL include:
 7. malformed pointer, response-buffer, and length cases;
 8. each supported Request encoding;
 9. USBDC1 reset and reconnect while USBDC0 remains operational;
-10. clearing `HUB_CONNECT` and re-enumerating the whole topology;
+10. clearing `HUB_DCON` and re-enumerating the whole topology;
 11. USB bus reset followed by endpoint disable and EP0 recovery;
 12. SetConfiguration enabling only the selected endpoints; and
 13. attempted cross-access between USBDC0 and USBDC1 RAM regions.
